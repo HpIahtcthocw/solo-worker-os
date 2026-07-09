@@ -190,14 +190,29 @@ async function streamMessage(
     },
   }));
 
-  // Build OpenAI-format messages, preserving tool_calls when present
+  // Build OpenAI-format messages
   const serializedMessages = messages.map((m) => {
+    const msgWithCalls = m as QwenMessage & { tool_calls?: QwenToolCallPart[] };
+    const hasToolCalls = Array.isArray(msgWithCalls.tool_calls) && msgWithCalls.tool_calls.length > 0;
+
+    // Extract text from content (handles both string and content-block array)
+    let contentStr: string;
+    if (typeof m.content === 'string') {
+      contentStr = m.content;
+    } else if (Array.isArray(m.content)) {
+      contentStr = (m.content as unknown as Array<Record<string, unknown>>)
+        .filter((b) => b.type === 'text' && typeof b.text === 'string')
+        .map((b) => b.text as string)
+        .join('');
+    } else {
+      contentStr = '';
+    }
+
     const base: Record<string, unknown> = {
       role: m.role,
-      content: typeof m.content === 'string' ? m.content : m.content,
+      content: hasToolCalls ? (contentStr || null) : contentStr,
     };
-    const msgWithCalls = m as QwenMessage & { tool_calls?: QwenToolCallPart[] };
-    if (msgWithCalls.tool_calls && msgWithCalls.tool_calls.length > 0) {
+    if (hasToolCalls) {
       base.tool_calls = msgWithCalls.tool_calls;
     }
     return base;
@@ -355,7 +370,7 @@ export const qwenProvider: AgentProvider = {
         try {
           const out = await executeTool(tu.name, tu.input);
           callbacks.onTool?.(tu.name, out.clientSummary);
-          if (out.displayText) onText(out.displayText);
+          // Do NOT call onText for tool displayText — causes duplicate messages in chat
           toolResultBlocks.push({
             type: 'tool_result',
             content: out.toolResult,

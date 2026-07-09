@@ -1,5 +1,5 @@
-function Shimmer({ className }: { className: string }) {
-  return <div className={`animate-pulse rounded-lg bg-white/[0.04] ${className}`} />;
+function Shimmer({ className, style }: { className: string; style?: React.CSSProperties }) {
+  return <div className={`animate-pulse rounded-lg bg-white/[0.04] ${className}`} style={style} />;
 }
 
 export default function ProjectsLoading() {

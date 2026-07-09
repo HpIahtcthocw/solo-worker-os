@@ -6,7 +6,7 @@ import type { Project, AgentAction } from '@/lib/types';
 import ProjectCard from '@/components/ProjectCard';
 import { getServerT, getServerLang } from '@/lib/i18n-server';
 
-export const revalidate = 30;
+export const revalidate = 60;
 
 // ─── tiny icons ──────────────────────────────────────────────────────────────
 function IconBriefcase() {

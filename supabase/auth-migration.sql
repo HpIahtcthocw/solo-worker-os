@@ -4,8 +4,6 @@
 --
 -- NOTE: The app server uses the service-role key (bypasses RLS) for all writes.
 -- These RLS policies protect against direct anon-key API access from the browser.
---
--- Execution order: schema.sql → poc_schema.sql → auth-migration.sql
 
 -- ── 1. Add user_id columns (nullable to avoid breaking existing rows) ────────
 
@@ -41,23 +39,25 @@ DROP POLICY IF EXISTS "knowledge_docs_anon_all" ON knowledge_docs;
 -- because the service role is never exposed to the browser.
 
 CREATE POLICY "projects_own" ON projects
-  FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+  FOR ALL USING (user_id IS NULL OR user_id = auth.uid()) WITH CHECK (user_id IS NULL OR user_id = auth.uid());
 
 CREATE POLICY "messages_own" ON messages
-  FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+  FOR ALL USING (user_id IS NULL OR user_id = auth.uid()) WITH CHECK (user_id IS NULL OR user_id = auth.uid());
 
 CREATE POLICY "agent_actions_own" ON agent_actions
-  FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+  FOR ALL USING (user_id IS NULL OR user_id = auth.uid()) WITH CHECK (user_id IS NULL OR user_id = auth.uid());
 
 CREATE POLICY "knowledge_docs_own" ON knowledge_docs
-  FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+  FOR ALL USING (user_id IS NULL OR user_id = auth.uid()) WITH CHECK (user_id IS NULL OR user_id = auth.uid());
 
 CREATE POLICY "notifications_own" ON notifications
-  FOR ALL USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+  FOR ALL USING (user_id IS NULL OR user_id = auth.uid()) WITH CHECK (user_id IS NULL OR user_id = auth.uid());
 
 -- workflow_steps has no user_id — it's linked to projects via project_id.
 -- Access is gated via the project ownership check in app code.
 CREATE POLICY "workflow_steps_via_project" ON workflow_steps
   FOR ALL USING (
-    project_id IN (SELECT id FROM projects WHERE user_id = auth.uid())
+    project_id IN (
+      SELECT id FROM projects WHERE user_id IS NULL OR user_id = auth.uid()
+    )
   );

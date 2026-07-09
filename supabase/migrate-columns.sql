@@ -1,5 +1,5 @@
 -- Solo Worker OS — Column migration (run once in Supabase SQL Editor)
--- Adds columns that are missing from tables created by an older schema version.
+-- Adds columns that may be missing from tables created by an older schema version.
 -- Safe to re-run: every statement uses IF NOT EXISTS.
 
 -- projects

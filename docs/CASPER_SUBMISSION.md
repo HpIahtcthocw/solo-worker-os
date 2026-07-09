@@ -73,7 +73,7 @@ Casper Network integration bridges on-chain data with real-world freelance opera
 - Open `/casper`
 - Show: RPC Status = Online
 - Show: Live account balance table with real CSPR balances
-- Show: 4 available blockchain tools (query_account, get_deploy, faucet, build_transfer)
+- Show: 2 available blockchain tools (query_account, get_deploy)
 - Click "Casper Buildathon Page" link
 
 **Key point:** Real on-chain data, real RPC calls.
@@ -119,11 +119,9 @@ Switching providers requires only changing `AGENT_PROVIDER` env var.
 | `update_project_status` | Business | Update project status |
 | `generate_contract` | Business | Draft service agreement |
 | `generate_followup_message` | Business | Payment reminders |
-| `search_knowledge` | Business | Search user documents |
+| `search_knowledge_base` | Business | Search user documents |
 | `casper_query_account` | Blockchain | Query account balance |
 | `casper_get_deploy` | Blockchain | Look up transaction |
-| `casper_faucet` | Blockchain | Get testnet funds |
-| `casper_build_transfer` | Blockchain | Build transfer deploy |
 
 ### Casper Workflow Rules (in system prompt)
 
@@ -180,7 +178,7 @@ Freelancer: "I just sent an invoice to Alice."
 Agent:     "Want me to check Alice's Casper balance?"
 Freelancer: "Yes please."
 Agent:     [calls casper_query_account]
-           "Alice has 120 CSPR — that covers the 50 CSPR invoice. 
+           "Alice has 120 CSPR — that covers the 50 CSPR invoice.
             I'll mark the project as paid."
 ```
 

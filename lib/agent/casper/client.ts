@@ -17,7 +17,6 @@
  *   state_get_account_info      → account info (public key → account hash + purse)
  *   state_get_balance           → balance (purse URef + state root hash)
  *   info_get_deploy             → deploy status by hash
- *   account_put_deploy          → submit a signed deploy
  */
 
 const PRIMARY_RPC =
@@ -25,8 +24,6 @@ const PRIMARY_RPC =
 const BACKUP_RPC = 'https://node.testnet.cspr.cloud/rpc';
 
 export const CASPER_EXPLORER = 'https://testnet.cspr.live';
-export const CASPER_FAUCET   = 'https://testnet.cspr.live/tools/faucet';
-export const CASPER_EVENTS   = 'https://node.testnet.casper.network/events';
 
 // ──────────────────────────────────────────────────────────────
 // Types
@@ -45,21 +42,6 @@ export interface CasperDeployInfo {
   state: string;
   timestamp: string;
   error_message?: string;
-}
-
-export interface CasperTransferResult {
-  deploy_hash: string;
-  from_account: string;
-  to_account: string;
-  amount_cspr: string;
-  amount_motes: string;
-  status: string;
-}
-
-export interface CasperFaucetResult {
-  success: boolean;
-  message: string;
-  faucet_url?: string;
 }
 
 export class CasperAPIError extends Error {
@@ -190,7 +172,6 @@ export async function healthCheck(): Promise<boolean> {
  *                      Secp256k1:   "02<66 hex chars>"
  */
 export async function queryAccount(publicKeyHex: string): Promise<CasperAccountInfo> {
-  // Strip any prefix the user may have added
   const key = publicKeyHex.replace(/^(account-hash-|hash-)/, '');
 
   // Step 1: state root hash
@@ -265,102 +246,5 @@ export async function getDeploy(deployHash: string): Promise<CasperDeployInfo> {
     state,
     timestamp:    result.deploy.header.timestamp,
     ...(errorMessage ? { error_message: errorMessage } : {}),
-  };
-}
-
-// ──────────────────────────────────────────────────────────────
-// Public API — Write operations
-// ──────────────────────────────────────────────────────────────
-
-/**
- * Submit a fully-signed deploy to the Casper Testnet.
- *
- * The deploy must already be signed (approvals populated).
- * Signing requires an Ed25519 or Secp256k1 private key —
- * this is done client-side via casper-js-sdk or Casper Wallet.
- *
- * @returns deploy_hash on success
- */
-export async function submitDeploy(
-  signedDeploy: Record<string, unknown>
-): Promise<{ deploy_hash: string }> {
-  return jsonRpc<{ deploy_hash: string }>('account_put_deploy', {
-    deploy: signedDeploy,
-  });
-}
-
-/**
- * Build an unsigned CSPR transfer deploy structure.
- * Demonstrates the deploy format for evaluation purposes.
- * Must be signed with a private key before calling submitDeploy().
- *
- * @param fromPublicKey  Sender's public key hex ("01..." or "02...")
- * @param toPublicKey    Recipient's public key hex
- * @param amountCspr     Amount as string, e.g. "1.5"
- * @param ttl            Time-to-live, e.g. "30m"
- */
-export function buildTransferDeploy(
-  fromPublicKey: string,
-  toPublicKey: string,
-  amountCspr: string,
-  ttl = '30m'
-): Record<string, unknown> {
-  const amountMotes = csprToMotes(amountCspr).toString();
-  const timestamp   = new Date().toISOString();
-
-  return {
-    // hash and body_hash are computed by the SDK after serialization
-    hash: '** computed by SDK after signing **',
-    header: {
-      account:   fromPublicKey,
-      timestamp,
-      ttl,
-      gas_price: 1,
-      body_hash: '** computed by SDK **',
-      dependencies: [],
-      chain_name: 'casper-test',
-    },
-    payment: {
-      ModuleBytes: {
-        module_bytes: '',
-        args: [
-          ['amount', { cl_type: 'U512', bytes: amountMotes, parsed: amountMotes }],
-        ],
-      },
-    },
-    session: {
-      Transfer: {
-        args: [
-          ['amount', { cl_type: 'U512', bytes: amountMotes, parsed: amountMotes }],
-          ['target', { cl_type: 'PublicKey', bytes: toPublicKey, parsed: toPublicKey }],
-          ['id',     { cl_type: { Option: 'U64' }, bytes: '', parsed: null }],
-        ],
-      },
-    },
-    approvals: [
-      {
-        signer:    fromPublicKey,
-        signature: '** Ed25519/Secp256k1 signature — added by Casper Wallet or SDK **',
-      },
-    ],
-    _meta: {
-      amount_cspr:  amountCspr,
-      amount_motes: amountMotes,
-      note: 'This is an unsigned deploy preview. Sign with casper-js-sdk or Casper Wallet before submitting.',
-      sign_with: 'https://casperwallet.io  OR  import { DeployUtil } from "casper-js-sdk"',
-      submit_to: _rpcUrl,
-    },
-  };
-}
-
-/**
- * Faucet — directs user to the web faucet; the faucet has CAPTCHA
- * so it cannot be called programmatically.
- */
-export async function requestFaucet(publicKeyHex: string): Promise<CasperFaucetResult> {
-  return {
-    success: false,
-    message: `Casper testnet faucet requires manual CAPTCHA verification. Visit ${CASPER_FAUCET} and paste your public key: ${publicKeyHex.slice(0, 20)}...`,
-    faucet_url: CASPER_FAUCET,
   };
 }

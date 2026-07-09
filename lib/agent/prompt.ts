@@ -6,8 +6,7 @@ import type { CompetitionMode } from '@/lib/tools';
  * Provider-neutral: just produces a string any provider can use.
  *
  * Competition mode adds an extra block describing the agent's
- * additional capabilities (Qwen tools, Casper blockchain, etc.)
- * without changing the core freelancer-assistant behavior.
+ * additional capabilities without changing the core freelancer-assistant behavior.
  */
 export function buildSystemPrompt(
   projects: Project[],
@@ -25,11 +24,6 @@ export function buildSystemPrompt(
 
   const competitionBlock = (() => {
     switch (mode) {
-      case 'qwen':
-        return `
----
-COMPETITION CONTEXT: You are competing in the Global AI Hackathon Series with Qwen Cloud (Track 1: MemoryAgent). Your responses demonstrate long-term memory, context retention, and multi-turn reasoning powered by Qwen Cloud AI. When users ask about their project history, leverage the full project database context above to show sophisticated memory capabilities.
----`;
       case 'casper':
         return `
 ---
@@ -40,7 +34,6 @@ Business rules:
 - If the user confirms, call casper_query_account with the client's public key. Parse the balance and compare it to the invoice amount.
 - If sufficient funds are found on-chain, suggest updating the project status to "paid" by calling update_project_status.
 - When the user mentions a deploy hash or transaction, use casper_get_deploy to look up its status and explain the result in plain language.
-- When the user needs testnet CSPR for testing, use casper_faucet to get the faucet URL.
 - Always explain blockchain results in simple terms — the user is a freelancer, not a crypto expert.
 
 Example flow:

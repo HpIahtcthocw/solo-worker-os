@@ -2,8 +2,7 @@ import { claudeProvider } from './claude';
 
 /**
  * Lazily-loaded providers — only imported when their env var is set.
- * This keeps the default qwen path lean and avoids loading competition
- * dependencies (DashScope SDK, Casper SDK) unless explicitly enabled.
+ * This keeps the default qwen path lean.
  */
 
 let _qwenProvider: import('./types').AgentProvider | null = null;
@@ -21,23 +20,13 @@ let _provider: import('./types').AgentProvider | null = null;
  * Returns the configured agent provider (singleton).
  *
  * Provider selection order:
- *   1. COMPETITION_MODE env var (qwen | casper)
- *   2. AGENT_PROVIDER env var (qwen | claude | openai)
- *   3. Default: qwen
- *
- * COMPETITION_MODE is a convenience wrapper:
- *   - COMPETITION_MODE=qwen  →  AGENT_PROVIDER=qwen
- *   - COMPETITION_MODE=casper →  AGENT_PROVIDER=qwen (Casper uses Qwen + Casper tools)
+ *   1. AGENT_PROVIDER env var (qwen | claude | openai)
+ *   2. Default: qwen
  */
 export async function getAgent(): Promise<import('./types').AgentProvider> {
   if (_provider) return _provider;
 
-  const competitionMode = process.env.COMPETITION_MODE?.toLowerCase();
-  const providerName = competitionMode
-    ? competitionMode === 'casper'
-      ? 'qwen'
-      : competitionMode
-    : (process.env.AGENT_PROVIDER ?? 'qwen').toLowerCase();
+  const providerName = (process.env.AGENT_PROVIDER ?? 'qwen').toLowerCase();
 
   switch (providerName) {
     case 'claude': {
@@ -57,7 +46,7 @@ export async function getAgent(): Promise<import('./types').AgentProvider> {
     default:
       throw new Error(
         `Unknown AGENT_PROVIDER "${providerName}". Supported: claude, openai, qwen. ` +
-          `Or set COMPETITION_MODE=qwen | casper.`
+          `Set AGENT_PROVIDER in .env.local.`
       );
   }
   return _provider;

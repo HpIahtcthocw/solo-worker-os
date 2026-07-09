@@ -13,38 +13,27 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          for (const { name, value } of cookiesToSet) {
-            request.cookies.set(name, value);
-          }
+          try {
+            for (const { name, value } of cookiesToSet) {
+              request.cookies.set(name, value);
+            }
+          } catch {}
           supabaseResponse = NextResponse.next({ request });
-          for (const { name, value, options } of cookiesToSet) {
-            supabaseResponse.cookies.set(name, value, options);
+          for (const { name, value } of cookiesToSet) {
+            supabaseResponse.cookies.set(name, value);
           }
         },
       },
     },
   );
 
-  // Refresh session — MUST be called before any auth checks
-  const { data: { user } } = await supabase.auth.getUser();
+  // NOTE: auth.getUser() makes a network call to Supabase on EVERY request.
+  // Commented out because auth redirects are disabled in demo mode.
+  // Uncomment only when you need server-side session validation.
+  //
+  // const { data: { user } } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-
-  // Auth redirect is disabled in development / demo mode.
-  // Uncomment the block below when adding proper registration.
-  //
-  // const isPublic =
-  //   pathname.startsWith('/login') ||
-  //   pathname.startsWith('/auth') ||
-  //   pathname.startsWith('/api/cron');
-  // if (!user && !isPublic) {
-  //   const loginUrl = request.nextUrl.clone();
-  //   loginUrl.pathname = '/login';
-  //   return NextResponse.redirect(loginUrl);
-  // }
-
-  void user; // session is refreshed above; no redirect for now
-  void pathname;
 
   return supabaseResponse;
 }
@@ -54,3 +43,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
+

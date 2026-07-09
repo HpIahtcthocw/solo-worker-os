@@ -94,13 +94,3 @@ create policy "knowledge_docs_anon_all" on knowledge_docs
   for all to anon, authenticated using (true) with check (true);
 
 -- The service role bypasses RLS entirely.
-
--- ── Idempotent migrations (safe to re-run) ─────────────────────────────────────
--- Adds columns that may be missing from tables created by an older schema version.
-
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS casper_address text;
-CREATE INDEX IF NOT EXISTS idx_projects_casper ON projects(casper_address);
-
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS currency text NOT NULL DEFAULT 'SGD';
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS deadline date NOT NULL DEFAULT CURRENT_DATE;
-ALTER TABLE projects ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'active';

@@ -100,7 +100,7 @@ export const TOOL_SPECS: ToolSpec[] = [
   {
     name: 'search_knowledge_base',
     description:
-      'Search the user\'s private knowledge base (past contracts, email templates, pricing notes, client records). Use when the user asks about historical data, e.g. "what did I charge Zhang Zong?" or "find my logo contract template".',
+      "Search the user's private knowledge base (past contracts, email templates, pricing notes, client records). Use when the user asks about historical data, e.g. \"what did I charge Zhang Zong?\" or \"find my logo contract template\".",
     input_schema: {
       type: 'object',
       properties: {
@@ -143,7 +143,7 @@ export const TOOL_SPECS: ToolSpec[] = [
 export { ToolExecutionResult };
 
 // ──────────────────────────────────────────────────────────────
-// Competition mode extensions (Qwen / Casper hackathons)
+// Competition mode extensions
 // ──────────────────────────────────────────────────────────────
 
 import { executeCasperTool, CASPER_TOOL_SPECS } from './agent/casper/tools';
@@ -197,7 +197,7 @@ export async function executeTool(
       });
       return {
         toolResult: `Project created. project_id=${data.id}. client=${data.client_name}, type=${data.project_type}, budget=${data.budget} ${data.currency}, deadline=${data.deadline}, status=active.`,
-        clientSummary: `Created project “${data.project_type}” for ${data.client_name} (${data.budget} ${data.currency}, due ${data.deadline}).`,
+        clientSummary: `Created project "${data.project_type}" for ${data.client_name} (${data.budget} ${data.currency}, due ${data.deadline}).`,
       };
     }
 
@@ -215,7 +215,7 @@ export async function executeTool(
       });
       return {
         toolResult: `Project ${data.id} status updated to ${status}.`,
-        clientSummary: `Marked “${data.project_type}” for ${data.client_name} as ${status}.`,
+        clientSummary: `Marked "${data.project_type}" for ${data.client_name} as ${status}.`,
       };
     }
 
@@ -233,7 +233,7 @@ export async function executeTool(
       });
       return {
         toolResult: 'Contract generated and already displayed to the user verbatim. Do NOT repeat the contract; just confirm in one short sentence.',
-        clientSummary: `Drafted a contract for “${p.project_type}” for ${p.client_name}.`,
+        clientSummary: `Drafted a contract for "${p.project_type}" for ${p.client_name}.`,
         displayText: contract,
       };
     }
@@ -242,7 +242,7 @@ export async function executeTool(
       const parsed = FollowupSchema.safeParse(input);
       if (!parsed.success) throw new Error(`Invalid input: ${parsed.error.message}`);
       const { project_id: projectId, tone } = parsed.data;
-      const { data: p, error } = await supabase.from('projects').select('*').eq('id', projectId).single();
+      const { data: p, error } = await supabase.from('projects').select('*').eq('id', parsed.data.project_id).single();
       if (error) throw new Error(error.message);
       const message = buildFollowup(p as Project, tone);
       await supabase.from('agent_actions').insert({
@@ -265,13 +265,13 @@ export async function executeTool(
       if (docs.length === 0) {
         return {
           toolResult: 'No matching documents found in the knowledge base.',
-          clientSummary: `Searched knowledge base for: “${parsed.data.query}” — no results.`,
+          clientSummary: `Searched knowledge base for: "${parsed.data.query}" — no results.`,
         };
       }
       const summary = docs.map((d) => `[${d.doc_type}] ${d.title}\n${d.content.slice(0, 500)}`).join('\n\n---\n\n');
       return {
         toolResult: `Found ${docs.length} relevant document(s):\n\n${summary}`,
-        clientSummary: `Found ${docs.length} knowledge base entry(ies) for: “${parsed.data.query}”.`,
+        clientSummary: `Found ${docs.length} knowledge base entry(ies) for: "${parsed.data.query}".`,
       };
     }
 
@@ -296,8 +296,8 @@ export async function executeTool(
         (b) => `${b.category}: ${b.currency} ${b.low}–${b.mid}–${b.high} per ${b.unit} (${b.notes})`
       ).join('\n');
       return {
-        toolResult: `Industry pricing benchmarks for “${parsed.data.category}”:\n${lines}`,
-        clientSummary: `Fetched pricing benchmarks for: “${parsed.data.category}”.`,
+        toolResult: `Industry pricing benchmarks for "${parsed.data.category}":\n${lines}`,
+        clientSummary: `Fetched pricing benchmarks for: "${parsed.data.category}".`,
       };
     }
 
@@ -322,7 +322,7 @@ Total fee: **${p.currency} ${Number(p.budget).toFixed(2)}**.
 Final delivery / deadline: **${p.deadline}**.
 
 ## Terms
-1. Scope of work covers the deliverables described as “${p.project_type}”.
+1. Scope of work covers the deliverables described as "${p.project_type}".
 2. A 50% deposit may be required before work begins; the balance is due upon delivery.
 3. Revisions beyond two rounds are billable at an agreed hourly rate.
 4. Either party may terminate with 7 days written notice; work completed up to that point remains billable.
@@ -348,10 +348,10 @@ function buildFollowup(
 
   const body =
     tone === 'polite'
-      ? `I hope you're doing well. Just a gentle reminder regarding our project “${p.project_type}” (agreed fee ${p.currency} ${Number(p.budget).toFixed(2)}, due ${p.deadline}). When you have a moment, could you confirm the payment status? Happy to answer any questions. Thanks so much!`
+      ? `I hope you're doing well. Just a gentle reminder regarding our project "${p.project_type}" (agreed fee ${p.currency} ${Number(p.budget).toFixed(2)}, due ${p.deadline}). When you have a moment, could you confirm the payment status? Happy to answer any questions. Thanks so much!`
       : tone === 'firm'
-        ? `Following up on the project “${p.project_type}” (fee ${p.currency} ${Number(p.budget).toFixed(2)}, due ${p.deadline}). Payment is now overdue. Please arrange payment at your earliest convenience and let me know if there is an issue I should be aware of. I would like to resolve this promptly.`
-        : `This is a final notice regarding the outstanding payment of ${p.currency} ${Number(p.budget).toFixed(2)} for “${p.project_type}” (due ${p.deadline}). Despite previous reminders, payment has not been received. Please settle this within 7 days to avoid further action. Contact me immediately if you wish to discuss.`;
+        ? `Following up on the project "${p.project_type}" (fee ${p.currency} ${Number(p.budget).toFixed(2)}, due ${p.deadline}). Payment is now overdue. Please arrange payment at your earliest convenience and let me know if there is an issue I should be aware of. I would like to resolve this promptly.`
+        : `This is a final notice regarding the outstanding payment of ${p.currency} ${Number(p.budget).toFixed(2)} for "${p.project_type}" (due ${p.deadline}). Despite previous reminders, payment has not been received. Please settle this within 7 days to avoid further action. Contact me immediately if you wish to discuss.`;
 
   const closer =
     tone === 'polite'
