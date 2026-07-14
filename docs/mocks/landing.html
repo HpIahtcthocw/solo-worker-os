@@ -1,0 +1,1255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Solo — Your freelance business, run by chat.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  /* ────────────── DESIGN TOKENS (mirrors brief §4) ────────────── */
+  :root {
+    --bg: #0a0a0c;
+    --surface: #111114;
+    --surface-2: #17171b;
+    --elevated: #1c1c21;
+
+    --border: #23232a;
+    --border-hi: #2f2f38;
+    --border-lo: #1a1a1f;
+
+    --text-hi: #f5f5f7;
+    --text: #d4d4d8;
+    --text-mid: #8a8a92;
+    --text-lo: #58585f;
+    --text-xlo: #3d3d43;
+
+    --accent: #f5b544;
+    --accent-hi: #ffcd6b;
+    --accent-ink: #1a1400;
+
+    --success: #7ee6a8;
+    --info: #8fe1f0;
+    --warn: #f5c876;
+    --danger: #f2a0a0;
+
+    --cream: #f0e6d2;
+
+    --r-chip: 6px;
+    --r-input: 10px;
+    --r-card: 14px;
+    --r-panel: 20px;
+
+    --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    --shadow-hairline: inset 0 1px 0 rgba(255,255,255,0.04);
+    --shadow-lift: 0 8px 32px -12px rgba(0,0,0,0.5);
+    --shadow-accent: 0 0 40px rgba(245,181,68,0.35);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Geist", -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+
+  /* Very subtle atmospheric background — much quieter than the current site */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1000px 700px at 15% -10%, rgba(245,181,68,0.05), transparent 55%),
+      radial-gradient(800px 600px at 90% 10%, rgba(240,230,210,0.025), transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  main { position: relative; z-index: 1; }
+
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  ::selection { background: rgba(245,181,68,0.28); color: #fff; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1f1f26; border-radius: 9999px; }
+
+  /* ────────────── UTILS ────────────── */
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+  @media (max-width: 720px) { .container { padding: 0 20px; } }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: "Instrument Serif", serif;
+    color: var(--cream);
+    font-size: 15px; font-style: italic; font-weight: 400;
+    letter-spacing: 0;
+  }
+  .eyebrow .dot { display: inline-block; width: 24px; height: 1px; background: var(--cream); opacity: .5; }
+
+  .label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--text-mid);
+  }
+
+  .mono { font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: -0.01em; }
+
+  /* ────────────── NAV ────────────── */
+  header.nav {
+    position: sticky; top: 0; z-index: 50;
+    height: 64px;
+    background: rgba(10,10,12,0.72);
+    backdrop-filter: saturate(140%) blur(14px);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+    border-bottom: 1px solid var(--border-lo);
+  }
+  header.nav .inner {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 100%;
+  }
+  .brand { display: inline-flex; align-items: center; gap: 10px; }
+  .brand .mark {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--cream);
+    color: var(--bg);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+  }
+  .brand .name { font-weight: 600; font-size: 15px; color: var(--text-hi); letter-spacing: -0.01em; }
+  .brand .name em { font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400; color: var(--cream); }
+
+  nav.primary { display: flex; align-items: center; gap: 2px; }
+  nav.primary a {
+    padding: 8px 14px; border-radius: var(--r-chip);
+    font-size: 13px; font-weight: 500; color: var(--text-mid);
+    transition: color .2s var(--ease), background .2s var(--ease);
+  }
+  nav.primary a:hover { color: var(--text-hi); background: rgba(255,255,255,0.03); }
+
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .lang-toggle { font-size: 12px; color: var(--text-lo); padding: 6px 10px; border-radius: var(--r-chip); }
+  .lang-toggle:hover { color: var(--text-hi); background: rgba(255,255,255,0.03); }
+  .btn-ghost, .btn-primary {
+    padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 8px; transition: all .22s var(--ease);
+    line-height: 1;
+  }
+  .btn-ghost { color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text-hi); border-color: var(--border-hi); background: rgba(255,255,255,0.02); }
+  .btn-primary { color: var(--accent-ink); background: var(--accent); box-shadow: var(--shadow-hairline); }
+  .btn-primary:hover { background: var(--accent-hi); }
+
+  @media (max-width: 900px) { nav.primary { display: none; } }
+
+  /* ────────────── HERO ────────────── */
+  section.hero { padding: 96px 0 56px; }
+  .hero-eyebrow { margin-bottom: 40px; }
+  .hero h1 {
+    font-family: "Geist", sans-serif;
+    font-weight: 500;
+    font-size: clamp(46px, 8.4vw, 108px);
+    line-height: 0.94;
+    letter-spacing: -0.045em;
+    color: var(--text-hi);
+    max-width: 15ch;
+  }
+  .hero h1 .serif {
+    font-family: "Instrument Serif", serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--cream);
+    letter-spacing: -0.02em;
+  }
+  .hero p.sub {
+    margin-top: 32px;
+    font-size: 20px; line-height: 1.55;
+    color: var(--text-mid);
+    max-width: 46ch;
+  }
+  .hero-ctas { margin-top: 40px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .btn-primary.hero-cta {
+    padding: 14px 22px; font-size: 14px; box-shadow: var(--shadow-hairline), var(--shadow-accent);
+  }
+  .btn-play {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 4px; font-size: 14px; color: var(--text-mid); font-weight: 500;
+  }
+  .btn-play:hover { color: var(--text-hi); }
+  .btn-play .play {
+    width: 28px; height: 28px; border-radius: 999px; border: 1px solid var(--border-hi);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .22s var(--ease);
+  }
+  .btn-play:hover .play { background: var(--cream); color: var(--bg); border-color: var(--cream); }
+
+  /* Product screenshot panel (tinted spotlight) */
+  .hero-screenshot-wrap { margin-top: 88px; position: relative; }
+  .hero-screenshot-wrap::before {
+    content: '';
+    position: absolute; inset: -60px -8% -20px;
+    background:
+      radial-gradient(60% 80% at 50% 0%, rgba(245,181,68,0.10), transparent 70%),
+      radial-gradient(50% 60% at 20% 80%, rgba(240,230,210,0.04), transparent 60%);
+    pointer-events: none;
+  }
+  .hero-screenshot {
+    position: relative;
+    background:
+      linear-gradient(180deg, rgba(240,230,210,0.03), rgba(0,0,0,0)) ,
+      var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-panel);
+    padding: 20px;
+    box-shadow: var(--shadow-lift), var(--shadow-hairline);
+  }
+  .screenshot-frame {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: grid; grid-template-columns: 1.7fr 1fr; min-height: 480px;
+  }
+  @media (max-width: 900px) { .screenshot-frame { grid-template-columns: 1fr; min-height: auto; } }
+
+  /* fake chat pane */
+  .fake-chat { padding: 24px; display: flex; flex-direction: column; gap: 16px; border-right: 1px solid var(--border-lo); }
+  @media (max-width: 900px) { .fake-chat { border-right: 0; border-bottom: 1px solid var(--border-lo); } }
+  .fake-chat .day-marker {
+    text-align: center; font-size: 11px; color: var(--text-lo); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .bubble { display: flex; gap: 12px; align-items: flex-start; }
+  .bubble .avatar { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .bubble.user .avatar { background: var(--surface-2); color: var(--text-mid); border: 1px solid var(--border); }
+  .bubble.agent .avatar { background: var(--cream); color: var(--bg); }
+  .bubble .body { flex: 1; min-width: 0; }
+  .bubble .who { font-size: 12px; color: var(--text-mid); margin-bottom: 4px; display: flex; gap: 8px; align-items: center; }
+  .bubble .who .time { color: var(--text-xlo); font-family: "Geist Mono", monospace; font-size: 11px; }
+  .bubble .text { font-size: 14px; color: var(--text-hi); line-height: 1.55; }
+  .bubble.user .text { color: var(--text); }
+
+  .tool-call {
+    margin-top: 10px; border: 1px solid var(--border);
+    background: var(--bg);
+    border-radius: 10px; padding: 12px 14px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .tool-call .tc-icon {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: rgba(245,181,68,0.10); color: var(--accent);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; flex-shrink: 0;
+  }
+  .tool-call .tc-body { flex: 1; min-width: 0; }
+  .tool-call .tc-name { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--text-hi); font-weight: 500; }
+  .tool-call .tc-arg { font-size: 12px; color: var(--text-mid); margin-top: 2px; }
+  .tool-call .tc-out { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 12px; color: var(--text); }
+  .tool-call .tc-out .k { color: var(--text-lo); }
+
+  /* fake workspace pane */
+  .fake-workspace { padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+
+  /* ────────────── DEMO BAND ────────────── */
+  section.demo {
+    padding: 88px 0;
+    border-top: 1px solid var(--border-lo);
+    border-bottom: 1px solid var(--border-lo);
+    background: linear-gradient(180deg, rgba(245,181,68,0.02), transparent 60%);
+  }
+  .demo .label { margin-bottom: 32px; }
+  .demo-log {
+    max-width: 780px; margin: 0 auto;
+    font-family: "Geist Mono", monospace; font-size: 15px; line-height: 1.9;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: 28px 32px;
+    box-shadow: var(--shadow-hairline);
+    min-height: 300px;
+  }
+  .demo-log .row { display: flex; gap: 14px; }
+  .demo-log .who { color: var(--text-lo); min-width: 60px; user-select: none; }
+  .demo-log .who.you { color: var(--text-mid); }
+  .demo-log .who.solo { color: var(--accent); }
+  .demo-log .line { flex: 1; }
+  .demo-log .tool { display: inline-flex; align-items: center; gap: 6px; padding: 1px 8px; background: rgba(245,181,68,0.08); color: var(--accent); border-radius: 999px; font-size: 12px; margin-right: 6px; }
+  .demo-log a { color: var(--accent); border-bottom: 1px dashed var(--accent); padding-bottom: 1px; }
+  .cursor { display: inline-block; width: 8px; height: 15px; background: var(--accent); vertical-align: -2px; margin-left: 2px; animation: blink 1s step-end infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* ────────────── CAPABILITIES ────────────── */
+  section.caps { padding: 128px 0; }
+  .caps .header { max-width: 720px; margin-bottom: 56px; }
+  .caps h2 {
+    font-family: "Geist", sans-serif; font-weight: 500;
+    font-size: clamp(32px, 4.4vw, 52px); line-height: 1.05; letter-spacing: -0.03em;
+    color: var(--text-hi);
+    margin-top: 20px;
+  }
+  .caps h2 .serif { font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400; color: var(--cream); }
+  .caps .header p { margin-top: 20px; color: var(--text-mid); font-size: 17px; max-width: 46ch; }
+
+  .cap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .cap-grid { grid-template-columns: 1fr; } }
+
+  .cap-card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 20px;
+    min-height: 380px;
+    transition: border-color .25s var(--ease), background .25s var(--ease);
+  }
+  .cap-card:hover { border-color: var(--border-hi); background: var(--surface-2); }
+  .cap-card.tint-a { background: linear-gradient(180deg, rgba(245,181,68,0.05), var(--surface) 60%); }
+  .cap-card.tint-b { background: linear-gradient(180deg, rgba(126,230,168,0.04), var(--surface) 60%); }
+  .cap-card.tint-c { background: linear-gradient(180deg, rgba(240,230,210,0.04), var(--surface) 60%); }
+
+  .cap-card .cap-num { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--text-lo); }
+  .cap-card .cap-title { font-size: 22px; font-weight: 500; letter-spacing: -0.02em; color: var(--text-hi); line-height: 1.15; }
+  .cap-card .cap-desc { font-size: 14px; color: var(--text-mid); line-height: 1.55; }
+  .cap-card .cap-viz {
+    margin-top: auto;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    font-family: "Geist Mono", monospace; font-size: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    color: var(--text-mid); line-height: 1.5;
+  }
+  .cap-card .cap-viz .k { color: var(--text-hi); }
+  .cap-card .cap-viz .amber { color: var(--accent); }
+  .cap-card .cap-viz .dim { color: var(--text-lo); }
+
+  /* ────────────── HOW IT WORKS ────────────── */
+  section.how { padding: 128px 0; border-top: 1px solid var(--border-lo); }
+  .how .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 48px; gap: 32px; flex-wrap: wrap; }
+  .how h2 { font-family: "Geist"; font-weight: 500; font-size: clamp(32px, 4.4vw, 52px); line-height: 1.05; letter-spacing: -0.03em; color: var(--text-hi); margin-top: 20px; }
+  .how h2 .serif { font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400; color: var(--cream); }
+  .how .header .aside { color: var(--text-mid); font-size: 14px; max-width: 32ch; }
+
+  .steps { display: flex; flex-direction: column; border-top: 1px solid var(--border); }
+  .step {
+    display: grid; grid-template-columns: 80px 220px 1fr auto;
+    align-items: center; gap: 32px;
+    padding: 28px 4px;
+    border-bottom: 1px solid var(--border);
+    transition: background .22s var(--ease);
+  }
+  .step:hover { background: rgba(255,255,255,0.014); }
+  .step .n { font-family: "Geist Mono", monospace; font-size: 13px; color: var(--text-lo); }
+  .step .name { font-size: 20px; font-weight: 500; color: var(--text-hi); letter-spacing: -0.02em; }
+  .step .desc { font-size: 15px; color: var(--text-mid); line-height: 1.5; }
+  @media (max-width: 780px) {
+    .step { grid-template-columns: 40px 1fr; gap: 12px; padding: 20px 4px; }
+    .step .desc, .step .peek-panel { grid-column: 2; }
+  }
+
+  /* ────────────── FEATURES GRID ────────────── */
+  section.features { padding: 88px 0; border-top: 1px solid var(--border-lo); }
+  .features h3 { font-size: 15px; color: var(--text-mid); font-weight: 500; margin-bottom: 32px; }
+  .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border-lo); border: 1px solid var(--border-lo); border-radius: var(--r-card); overflow: hidden; }
+  @media (max-width: 900px) { .feat-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .feat-grid { grid-template-columns: 1fr; } }
+  .feat {
+    background: var(--surface); padding: 24px;
+    display: flex; flex-direction: column; gap: 8px;
+    transition: background .22s var(--ease);
+  }
+  .feat:hover { background: var(--surface-2); }
+  .feat .icon {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: var(--bg); border: 1px solid var(--border);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-mid);
+  }
+  .feat .name { font-size: 14px; font-weight: 500; color: var(--text-hi); margin-top: 12px; letter-spacing: -0.01em; }
+  .feat .desc { font-size: 13px; color: var(--text-mid); line-height: 1.5; }
+
+  /* ────────────── TECH STRIP ────────────── */
+  section.tech { padding: 56px 0; border-top: 1px solid var(--border-lo); }
+  .tech-row { display: flex; align-items: center; gap: 40px; flex-wrap: wrap; color: var(--text-lo); }
+  .tech-row .label { min-width: 120px; }
+  .tech-row .items { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; font-size: 14px; }
+  .tech-row .items span { color: var(--text-mid); font-weight: 500; }
+
+  /* ────────────── FINAL CTA ────────────── */
+  section.cta-final { padding: 160px 0; text-align: center; border-top: 1px solid var(--border-lo); }
+  .cta-final h2 {
+    font-family: "Geist"; font-weight: 500;
+    font-size: clamp(38px, 5vw, 68px); line-height: 1.02; letter-spacing: -0.04em;
+    color: var(--text-hi); max-width: 22ch; margin: 0 auto;
+  }
+  .cta-final h2 .serif { font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400; color: var(--cream); }
+  .cta-final p { margin-top: 24px; color: var(--text-mid); font-size: 17px; }
+  .cta-final .btns { margin-top: 40px; display: inline-flex; gap: 14px; }
+  .cta-final .btn-primary { padding: 14px 24px; font-size: 14px; box-shadow: var(--shadow-hairline), var(--shadow-accent); }
+
+  /* ────────────── FOOTER ────────────── */
+  footer { padding: 40px 0; border-top: 1px solid var(--border-lo); color: var(--text-lo); font-size: 13px; }
+  footer .inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  footer .links { display: flex; gap: 20px; }
+  footer .links a:hover { color: var(--text-hi); }
+
+  /* fade-in on load */
+  .fade-up { opacity: 0; transform: translateY(14px); animation: fu .8s var(--ease) forwards; }
+  @keyframes fu { to { opacity: 1; transform: translateY(0); } }
+  .d1 { animation-delay: .10s; } .d2 { animation-delay: .22s; } .d3 { animation-delay: .34s; } .d4 { animation-delay: .46s; } .d5 { animation-delay: .58s; }
+
+  /* ────────────── AUTOPILOT WORKSPACE (Hero) ────────────── */
+  .autopilot-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 14px; margin-bottom: 4px;
+    border-bottom: 1px solid var(--border-lo);
+  }
+  .autopilot-head .name { font-size: 13px; color: var(--text-hi); font-weight: 500; letter-spacing: -0.01em; }
+  .autopilot-head .name em { font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400; color: var(--cream); margin: 0 2px; }
+  .autopilot-head .live {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--text-mid);
+    font-family: "Geist Mono", monospace; letter-spacing: 0.02em;
+  }
+  .autopilot-head .live-dot {
+    width: 6px; height: 6px; border-radius: 999px;
+    background: var(--accent); box-shadow: 0 0 8px rgba(245,181,68,0.7);
+    animation: aliveDot 1.8s ease-in-out infinite;
+  }
+  @keyframes aliveDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.82); } }
+
+  .think-card {
+    background: linear-gradient(180deg, rgba(245,181,68,0.055), rgba(245,181,68,0.015));
+    border: 1px solid rgba(245,181,68,0.15);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .think-card .head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .think-card .head .lbl { font-size: 10px; color: var(--accent); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+  .think-card .text { font-size: 13px; color: var(--text-hi); line-height: 1.5; }
+  .think-card .text .mono-inline { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--accent); }
+  .think-card .bar {
+    margin-top: 10px; height: 3px; border-radius: 2px;
+    background: rgba(245,181,68,0.08); overflow: hidden; position: relative;
+  }
+  .think-card .bar::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: shim 1.6s linear infinite;
+  }
+  @keyframes shim { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+
+  .thinking-dots { display: inline-flex; gap: 3px; margin-left: 4px; }
+  .thinking-dots span {
+    width: 3px; height: 3px; border-radius: 999px; background: var(--accent);
+    animation: dot 1.4s ease-in-out infinite;
+  }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.16s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.32s; }
+  @keyframes dot { 0%, 100% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+
+  /* Timeline */
+  .timeline { display: flex; flex-direction: column; margin-top: 2px; }
+  .tl-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 7px 0; position: relative;
+  }
+  .tl-row::after {
+    content: ''; position: absolute;
+    left: 7.5px; top: calc(50% + 8px); height: 100%; width: 1px;
+    background: var(--border);
+  }
+  .tl-row:last-child::after { display: none; }
+  .tl-dot {
+    width: 15px; height: 15px; border-radius: 999px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 1.5px solid var(--border-hi);
+    position: relative;
+  }
+  .tl-dot.done { background: var(--accent); border-color: var(--accent); }
+  .tl-dot.done svg { width: 8px; height: 8px; color: var(--accent-ink); stroke-width: 3; }
+  .tl-dot.now {
+    border-color: var(--accent);
+    background: rgba(245,181,68,0.18);
+  }
+  .tl-dot.now::before {
+    content: ''; position: absolute; inset: -5px; border-radius: 999px;
+    border: 1.5px solid var(--accent); opacity: 0;
+    animation: ring 1.8s ease-out infinite;
+  }
+  @keyframes ring { 0% { transform: scale(0.7); opacity: 0.7; } 100% { transform: scale(1.7); opacity: 0; } }
+  .tl-dot.future { border-color: var(--border); border-style: dashed; }
+
+  .tl-label { font-size: 13px; flex: 1; letter-spacing: -0.005em; }
+  .tl-row.done .tl-label { color: var(--text-mid); }
+  .tl-row.now .tl-label { color: var(--text-hi); font-weight: 500; }
+  .tl-row.future .tl-label { color: var(--text-lo); }
+  .tl-time {
+    font-family: "Geist Mono", monospace; font-size: 11px; color: var(--text-lo);
+    letter-spacing: 0;
+  }
+  .tl-row.now .tl-time { color: var(--accent); }
+
+  /* Pipeline strip */
+  .pipe-strip {
+    padding-top: 12px; margin-top: 4px;
+    border-top: 1px solid var(--border-lo);
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: "Geist Mono", monospace; font-size: 11px;
+  }
+  .pipe-strip .cell { display: flex; flex-direction: column; gap: 2px; }
+  .pipe-strip .cell .k { color: var(--text-lo); text-transform: uppercase; letter-spacing: 0.06em; }
+  .pipe-strip .cell .v { color: var(--text-hi); font-size: 14px; font-weight: 500; }
+  .pipe-strip .cell.overdue .v { color: var(--danger); }
+  .pipe-strip .sep { width: 1px; height: 22px; background: var(--border-lo); }
+
+  /* Autopilot section separators */
+  .ws-block-label {
+    font-size: 10px; color: var(--text-lo); font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  /* ────────────── DEMO CONTROLS (replay) ────────────── */
+  .demo-controls {
+    max-width: 780px; margin: 14px auto 0;
+    display: flex; justify-content: flex-end;
+  }
+  .replay-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text-mid); font-family: "Geist Mono", monospace;
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px;
+    transition: all .22s var(--ease); opacity: 0; pointer-events: none;
+  }
+  .replay-btn.show { opacity: 1; pointer-events: auto; }
+  .replay-btn:hover { color: var(--text-hi); border-color: var(--border-hi); background: rgba(255,255,255,0.02); }
+  .demo-log .row .status {
+    display: inline-block; margin-right: 8px; color: var(--success);
+    font-family: "Geist Mono", monospace;
+  }
+  .demo-log .final {
+    margin-top: 8px; padding-top: 12px; border-top: 1px dashed var(--border);
+    font-size: 13px; color: var(--text-hi); font-family: "Geist", sans-serif; letter-spacing: -0.005em;
+  }
+  .demo-log .final em { font-family: "Instrument Serif", serif; font-style: italic; color: var(--cream); }
+
+  /* ────────────── CAPABILITY MINI-PRODUCT SNIPPETS ────────────── */
+  .cap-viz.snippet {
+    padding: 14px; gap: 0; font-family: "Geist", sans-serif; font-size: 12px;
+    display: flex; flex-direction: column; line-height: 1.5;
+  }
+  .snip-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px dashed var(--border-lo); }
+  .snip-row:last-child { border-bottom: 0; }
+  .snip-tag {
+    font-family: "Geist Mono", monospace; font-size: 10px;
+    color: var(--text-lo); background: var(--surface-2);
+    padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);
+  }
+  .snip-name { color: var(--text-hi); font-weight: 500; }
+  .snip-val { color: var(--text-mid); margin-left: auto; font-family: "Geist Mono", monospace; font-size: 11px; }
+  .snip-val.amber { color: var(--accent); }
+  .snip-val.good { color: var(--success); }
+  .snip-check { color: var(--accent); font-size: 12px; }
+  .snip-mini-bar { height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+  .snip-mini-bar span { display: block; height: 100%; background: var(--accent); }
+
+  /* Chip row (for proactive capability) */
+  .snip-suggest {
+    background: rgba(245,181,68,0.07);
+    border: 1px solid rgba(245,181,68,0.18);
+    color: var(--text-hi);
+    padding: 8px 10px; border-radius: 8px;
+    font-size: 12px; margin-top: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .snip-suggest .icon { color: var(--accent); font-size: 12px; }
+  .snip-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .snip-actions .btn {
+    font-size: 11px; padding: 4px 10px; border-radius: 6px;
+    border: 1px solid var(--border); color: var(--text-mid);
+  }
+  .snip-actions .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  /* Chain steps (for multi-tool capability) */
+  .snip-chain { display: flex; flex-direction: column; gap: 6px; }
+  .snip-chain .chain-step {
+    display: flex; align-items: center; gap: 8px;
+    font-family: "Geist Mono", monospace; font-size: 11px;
+    padding: 0; border: 0; background: transparent;
+  }
+  .snip-chain .chain-step .n {
+    width: 16px; height: 16px; border-radius: 999px;
+    background: var(--accent); color: var(--accent-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600;
+  }
+  .snip-chain .chain-step .n.pending { background: transparent; border: 1px dashed var(--border-hi); color: var(--text-lo); }
+  .snip-chain .chain-step .fn { color: var(--text-hi); }
+  .snip-chain .chain-step .out { color: var(--text-lo); margin-left: auto; }
+
+  /* ────────────── FIVE STEPS PEEK PANEL ────────────── */
+  .step .peek-panel {
+    min-width: 200px; max-width: 240px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    line-height: 1.4;
+  }
+  .step .peek-panel .pp-head {
+    font-size: 10px; color: var(--text-lo); font-family: "Geist Mono", monospace;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .step .peek-panel .pp-title { font-size: 12px; color: var(--text-hi); font-weight: 500; letter-spacing: -0.005em; }
+  .step .peek-panel .pp-line { height: 3px; background: var(--border); border-radius: 2px; }
+  .step .peek-panel .pp-line.w70 { width: 70%; }
+  .step .peek-panel .pp-line.w45 { width: 45%; }
+  .step .peek-panel .pp-line.w90 { width: 90%; }
+  .step .peek-panel .pp-quote { color: var(--text); font-style: italic; font-family: "Instrument Serif", serif; font-size: 13px; line-height: 1.35; }
+  .step .peek-panel .pp-pills { display: flex; gap: 4px; align-items: center; font-family: "Geist Mono", monospace; }
+  .step .peek-panel .pp-pills .p { font-size: 10px; padding: 2px 6px; border-radius: 4px; letter-spacing: 0; }
+  .step .peek-panel .pp-pills .p.done { background: rgba(126,230,168,0.10); color: var(--success); }
+  .step .peek-panel .pp-pills .p.now { background: rgba(245,181,68,0.10); color: var(--accent); }
+  .step .peek-panel .pp-pills .p.next { background: var(--surface-2); color: var(--text-lo); }
+  .step .peek-panel .pp-pills .a { color: var(--text-lo); font-size: 10px; margin: 0 2px; }
+  .step .peek-panel .pp-invoice { display: flex; align-items: center; justify-content: space-between; }
+  .step .peek-panel .pp-invoice .amt { font-family: "Geist Mono", monospace; color: var(--accent); font-weight: 500; font-size: 14px; }
+  .step .peek-panel .pp-invoice .who { color: var(--text-mid); font-size: 11px; }
+  .step .peek-panel .pp-email { display: flex; flex-direction: column; gap: 4px; }
+  .step .peek-panel .pp-email .subj { color: var(--text-hi); font-size: 11px; font-weight: 500; }
+  .step .peek-panel .pp-email .body-l { font-size: 10.5px; color: var(--text-mid); line-height: 1.45; }
+  @media (max-width: 780px) { .step .peek-panel { max-width: 100%; } }
+
+  /* Labs feature (footnote-style) */
+  .labs-note {
+    margin-top: 24px; text-align: center;
+    font-size: 12px; color: var(--text-lo);
+    padding: 16px; border: 1px dashed var(--border);
+    border-radius: 12px;
+  }
+  .labs-note .label-inline { color: var(--text-mid); font-weight: 500; margin-right: 8px; }
+  .labs-note a { color: var(--accent); border-bottom: 1px dashed var(--accent); }
+
+  /* language toggle rudimentary — data-lang="zh" shows .zh, hides .en, & vice versa */
+  [data-lang="en"] .zh { display: none; }
+  [data-lang="zh"] .en { display: none; }
+</style>
+</head>
+<body data-lang="en">
+  <header class="nav">
+    <div class="container inner">
+      <a class="brand" href="#top">
+        <span class="mark">·</span>
+        <span class="name">Solo</span>
+      </a>
+      <nav class="primary">
+        <a href="#capabilities"><span class="en">Features</span><span class="zh">能力</span></a>
+        <a href="#how"><span class="en">How it works</span><span class="zh">工作方式</span></a>
+        <a href="#pricing"><span class="en">Pricing</span><span class="zh">价格</span></a>
+        <a href="#docs"><span class="en">Docs</span><span class="zh">文档</span></a>
+        <a href="#labs" style="color: var(--text-lo);"><span class="en">Labs</span><span class="zh">实验室</span></a>
+      </nav>
+      <div class="nav-right">
+        <button class="lang-toggle" id="langBtn">
+          <span class="en">中文</span><span class="zh">EN</span>
+        </button>
+        <a class="btn-ghost" href="/login">
+          <span class="en">Sign in</span><span class="zh">登录</span>
+        </a>
+        <a class="btn-primary" href="/chat">
+          <span class="en">Try it</span><span class="zh">开始使用</span>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6h7m-2.5-2.5L9.5 6 7 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ═══════════════════ HERO ═══════════════════ -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-eyebrow fade-up d1">
+          <div class="eyebrow">
+            <span class="dot"></span>
+            <span class="en">AI freelance operator · v0.1 beta</span>
+            <span class="zh">自由职业者的 AI 后台 · v0.1 beta</span>
+          </div>
+        </div>
+
+        <h1 class="fade-up d2">
+          <span class="en">Your freelance business,<br/><span class="serif">run by chat.</span></span>
+          <span class="zh">你的业务，<br/><span class="serif">交给对话去跑。</span></span>
+        </h1>
+
+        <p class="sub fade-up d3">
+          <span class="en">One AI agent handles clients, contracts, invoices, and follow-ups. You talk. It remembers everything. <em style="color:var(--text-lo)">Zero forms, zero spreadsheets.</em></span>
+          <span class="zh">一个 AI agent 管好客户、合同、发票、催款。你说话，它记住一切。<em style="color:var(--text-lo)">零表格，零表单。</em></span>
+        </p>
+
+        <div class="hero-ctas fade-up d4">
+          <a class="btn-primary hero-cta" href="/chat">
+            <span class="en">Start chatting</span><span class="zh">开始对话</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9m-3-3l3 3-3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn-play" href="#demo">
+            <span class="play"><svg width="9" height="10" viewBox="0 0 9 10" fill="currentColor"><path d="M0 0v10l9-5z"/></svg></span>
+            <span class="en">Watch 30-second demo</span><span class="zh">看 30 秒演示</span>
+          </a>
+        </div>
+
+        <!-- product screenshot (chat + workspace) -->
+        <div class="hero-screenshot-wrap fade-up d5">
+          <div class="hero-screenshot">
+            <div class="screenshot-frame">
+              <!-- fake chat pane (tightened — 1 user + 1 agent, workspace is the star) -->
+              <div class="fake-chat">
+                <div class="day-marker">Today · Jul 15</div>
+
+                <div class="bubble user">
+                  <div class="avatar">J</div>
+                  <div class="body">
+                    <div class="who">You <span class="time">14:32</span></div>
+                    <div class="text"><span class="en">New client Alice, landing page redesign, USD 5,000, due Aug 15. Handle the whole flow.</span><span class="zh">新客户 Alice，Landing 页面重设计，USD 5,000，截止 8 月 15。整套流程你来。</span></div>
+                  </div>
+                </div>
+
+                <div class="bubble agent">
+                  <div class="avatar">S</div>
+                  <div class="body">
+                    <div class="who">Solo <span class="time">14:32</span></div>
+                    <div class="text"><span class="en">On it. I'll create the project, draft a 50/50 contract, prep the deposit invoice, and schedule the delivery follow-up. Watch the panel &rarr;</span><span class="zh">好的。我会创建项目、起草 50/50 合同、准备定金发票、安排交付跟进。看右边面板 &rarr;</span></div>
+
+                    <div class="tool-call">
+                      <div class="tc-icon">✱</div>
+                      <div class="tc-body">
+                        <div class="tc-name">create_project</div>
+                        <div class="tc-arg">client: <span class="mono">"Alice"</span> · budget: <span class="mono">5000 USD</span> · due: <span class="mono">2026-08-15</span></div>
+                        <div class="tc-out"><span class="k">→</span> project <span class="mono">#p_47</span> created</div>
+                      </div>
+                    </div>
+
+                    <div class="tool-call">
+                      <div class="tc-icon">📝</div>
+                      <div class="tc-body">
+                        <div class="tc-name">generate_contract</div>
+                        <div class="tc-arg">project: <span class="mono">p_47</span> · terms: 50/50</div>
+                        <div class="tc-out"><span class="k">→</span> contract ready · <a href="#" style="color:var(--accent)">Preview</a></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ▶▶▶ AUTOPILOT WORKSPACE (the star) ◀◀◀ -->
+              <div class="fake-workspace">
+                <div class="autopilot-head">
+                  <div class="name"><em>Solo</em> · Autopilot</div>
+                  <div class="live"><span class="live-dot"></span>live</div>
+                </div>
+
+                <div class="ws-section">
+                  <div class="ws-block-label"><span class="en">Now thinking</span><span class="zh">正在思考</span></div>
+                  <div class="think-card">
+                    <div class="head">
+                      <span class="lbl">Preparing</span>
+                      <span class="thinking-dots"><span></span><span></span><span></span></span>
+                    </div>
+                    <div class="text">
+                      <span class="en">Drafting deposit invoice for <span class="mono-inline">Alice</span> — using your standard 50/50 terms and last quarter's <span class="mono-inline">USD</span> template.</span>
+                      <span class="zh">正为 <span class="mono-inline">Alice</span> 起草定金发票——套用你惯用的 50/50 条款和上季度的 <span class="mono-inline">USD</span> 模板。</span>
+                    </div>
+                    <div class="bar"></div>
+                  </div>
+                </div>
+
+                <div class="ws-section">
+                  <div class="ws-block-label"><span class="en">Today</span><span class="zh">今天</span></div>
+                  <div class="timeline">
+                    <div class="tl-row done">
+                      <span class="tl-dot done"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5.5l2 2 4-5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                      <span class="tl-label"><span class="en">Client Alice created</span><span class="zh">客户 Alice 已创建</span></span>
+                      <span class="tl-time">14:32</span>
+                    </div>
+                    <div class="tl-row done">
+                      <span class="tl-dot done"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5.5l2 2 4-5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                      <span class="tl-label"><span class="en">Contract drafted &amp; sent</span><span class="zh">合同已起草并发送</span></span>
+                      <span class="tl-time">14:33</span>
+                    </div>
+                    <div class="tl-row now">
+                      <span class="tl-dot now"></span>
+                      <span class="tl-label"><span class="en">Preparing deposit invoice</span><span class="zh">准备定金发票</span></span>
+                      <span class="tl-time">now</span>
+                    </div>
+                    <div class="tl-row future">
+                      <span class="tl-dot future"></span>
+                      <span class="tl-label"><span class="en">Wait for signed contract</span><span class="zh">等待合同签署</span></span>
+                      <span class="tl-time">—</span>
+                    </div>
+                    <div class="tl-row future">
+                      <span class="tl-dot future"></span>
+                      <span class="tl-label"><span class="en">Auto follow-up in 3 days</span><span class="zh">3 天后自动跟进</span></span>
+                      <span class="tl-time">+3d</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pipe-strip">
+                  <div class="cell"><span class="k">Active</span><span class="v">5</span></div>
+                  <div class="sep"></div>
+                  <div class="cell"><span class="k">Invoiced</span><span class="v">2</span></div>
+                  <div class="sep"></div>
+                  <div class="cell overdue"><span class="k">Overdue</span><span class="v">1</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ DEMO BAND ═══════════════════ -->
+    <section class="demo" id="demo">
+      <div class="container">
+        <div class="label"><span class="en">See it work</span><span class="zh">看它工作</span></div>
+        <div class="demo-log" id="demoLog">
+          <!-- typewriter injects here -->
+        </div>
+        <div class="demo-controls">
+          <button class="replay-btn" id="replayBtn">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6a3 3 0 1 0 .8-2M3 3v2.4h2.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="en">Replay</span><span class="zh">重播</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ CAPABILITIES ═══════════════════ -->
+    <section class="caps" id="capabilities">
+      <div class="container">
+        <div class="header">
+          <div class="label"><span class="en">Why it's different</span><span class="zh">凭什么不一样</span></div>
+          <h2>
+            <span class="en">Three things generic chatbots<br/><span class="serif">still can't do.</span></span>
+            <span class="zh">三件通用聊天机器人<br/><span class="serif">做不了的事。</span></span>
+          </h2>
+          <p>
+            <span class="en">Solo isn't a wrapper. It's an operator — with memory of your clients, tools it can call on its own, and judgment about when to act.</span>
+            <span class="zh">Solo 不是套壳。它是一个运营者——记得你的每个客户，能自己调用工具，也懂得何时该行动。</span>
+          </p>
+        </div>
+
+        <div class="cap-grid">
+          <div class="cap-card tint-a">
+            <div class="cap-num">01</div>
+            <div>
+              <div class="cap-title"><span class="en">Persistent memory</span><span class="zh">持久记忆</span></div>
+              <div class="cap-desc" style="margin-top:12px">
+                <span class="en">Every client, project, and past conversation is injected into every new one. Solo remembers Alice's budget, tone, and payment habits — across sessions, forever.</span>
+                <span class="zh">每个客户、项目、过往对话都会注入下一次交流。Solo 记得 Alice 的预算、语气、付款习惯——跨会话，永远。</span>
+              </div>
+            </div>
+            <div class="cap-viz snippet">
+              <div class="snip-row"><span class="snip-tag">client</span><span class="snip-name">Alice</span><span class="snip-check">●</span></div>
+              <div class="snip-row"><span class="snip-tag">budget</span><span class="snip-name">Landing site</span><span class="snip-val amber">$5,000</span></div>
+              <div class="snip-row"><span class="snip-tag">tone</span><span class="snip-name">warm-but-clear</span><span class="snip-val">saved</span></div>
+              <div class="snip-row"><span class="snip-tag">history</span><span class="snip-name">on-time payer</span><span class="snip-val good">3 / 3</span></div>
+              <div style="font-size:11px; color:var(--text-lo); font-family:'Geist Mono', monospace; margin-top:8px;">+ 47 more facts about Alice</div>
+            </div>
+          </div>
+
+          <div class="cap-card tint-b">
+            <div class="cap-num">02</div>
+            <div>
+              <div class="cap-title"><span class="en">Proactive, not passive</span><span class="zh">主动，不等你开口</span></div>
+              <div class="cap-desc" style="margin-top:12px">
+                <span class="en">Solo watches deadlines, spots patterns, and suggests the next move without being asked. Overdue invoice? It drafts the follow-up in your voice.</span>
+                <span class="zh">Solo 盯着截止日期，识别模式，主动建议下一步。发票过期？它按你的语气起草催款文案。</span>
+              </div>
+            </div>
+            <div class="cap-viz snippet">
+              <div style="display:flex; align-items:center; gap:8px; padding:4px 0;">
+                <span style="width:6px; height:6px; border-radius:999px; background:var(--danger);"></span>
+                <span style="font-size:12px; color:var(--text-hi); font-weight:500;">Alice · invoice overdue</span>
+                <span style="margin-left:auto; font-family:'Geist Mono',monospace; font-size:11px; color:var(--danger);">3d late</span>
+              </div>
+              <div class="snip-suggest">
+                <span class="icon">✱</span>
+                <span><em style="color:var(--cream); font-family:'Instrument Serif',serif; font-style:italic;">Suggestion:</em> Send a firm-but-friendly reminder?</span>
+              </div>
+              <div class="snip-actions">
+                <button class="btn primary">Send</button>
+                <button class="btn">Snooze 3d</button>
+                <button class="btn">Edit</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cap-card tint-c">
+            <div class="cap-num">03</div>
+            <div>
+              <div class="cap-title"><span class="en">One message, many tools</span><span class="zh">一句话，多工具协同</span></div>
+              <div class="cap-desc" style="margin-top:12px">
+                <span class="en">"New client Marcus, e-commerce, $15k, Aug 20." Solo chains create → contract → invoice → schedule in one flow. You just answer yes.</span>
+                <span class="zh">"新客户 Marcus，电商平台，1.5 万美金，8 月 20。"Solo 把创建 → 合同 → 发票 → 排程串成一次流程。你只回一个 yes。</span>
+              </div>
+            </div>
+            <div class="cap-viz snippet">
+              <div class="snip-chain">
+                <div class="chain-step"><span class="n">1</span><span class="fn">create_project</span><span class="out">p_48 ✓</span></div>
+                <div class="chain-step"><span class="n">2</span><span class="fn">generate_contract</span><span class="out">ready ✓</span></div>
+                <div class="chain-step"><span class="n">3</span><span class="fn">create_invoice</span><span class="out">drafted ✓</span></div>
+                <div class="chain-step"><span class="n pending">4</span><span class="fn" style="color:var(--text-mid)">schedule_reminder</span><span class="out">…</span></div>
+              </div>
+              <div style="font-size:11px; color:var(--text-lo); font-family:'Geist Mono', monospace; margin-top:10px;">1 message → 4 actions · 8 seconds</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ HOW IT WORKS ═══════════════════ -->
+    <section class="how" id="how">
+      <div class="container">
+        <div class="header">
+          <div>
+            <div class="label"><span class="en">Five steps</span><span class="zh">五步流程</span></div>
+            <h2>
+              <span class="en">From "hey I got a new client"<br/><span class="serif">to money in the bank.</span></span>
+              <span class="zh">从"我又接了个活"<br/><span class="serif">到钱到账。</span></span>
+            </h2>
+          </div>
+          <div class="aside">
+            <span class="en">Every step is a single sentence. Solo does the rest — and remembers it, so next time is faster.</span>
+            <span class="zh">每一步只需一句话。剩下的 Solo 全接手——还会记住，下次更快。</span>
+          </div>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div class="n">01</div>
+            <div class="name"><span class="en">Intake</span><span class="zh">接单</span></div>
+            <div class="desc"><span class="en">Describe a client in one sentence. Solo extracts name, budget, currency, deadline.</span><span class="zh">一句话描述客户。Solo 自动抓取姓名、预算、币种、截止日。</span></div>
+            <div class="peek-panel">
+              <div class="pp-head">chat · 14:32</div>
+              <div class="pp-quote">"New client Alice, landing page, $5k, due Aug 15."</div>
+              <div style="display:flex; gap:6px; margin-top:2px;">
+                <span class="p" style="font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(245,181,68,0.10); color:var(--accent); font-family:'Geist Mono',monospace;">Alice</span>
+                <span class="p" style="font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(245,181,68,0.10); color:var(--accent); font-family:'Geist Mono',monospace;">$5k</span>
+                <span class="p" style="font-size:10px; padding:2px 6px; border-radius:4px; background:rgba(245,181,68,0.10); color:var(--accent); font-family:'Geist Mono',monospace;">Aug 15</span>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="n">02</div>
+            <div class="name"><span class="en">Contract</span><span class="zh">合同</span></div>
+            <div class="desc"><span class="en">Markdown services agreement, drafted in your voice with your terms. Ready in seconds.</span><span class="zh">按你的语气与条款起草的服务协议，秒级生成。</span></div>
+            <div class="peek-panel">
+              <div class="pp-head">contract · p_47.md</div>
+              <div class="pp-title">Services Agreement — Alice</div>
+              <div class="pp-line w90"></div>
+              <div class="pp-line w70"></div>
+              <div class="pp-line w45"></div>
+              <div style="font-family:'Geist Mono',monospace; font-size:10px; color:var(--accent); margin-top:4px;">↓ download · signed by Solo</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="n">03</div>
+            <div class="name"><span class="en">Track</span><span class="zh">跟踪</span></div>
+            <div class="desc"><span class="en">Every project has a status. Solo remembers where each one stands — you never dig through folders.</span><span class="zh">每个项目都有状态。Solo 记得它现在停在哪一步——你不用翻文件夹。</span></div>
+            <div class="peek-panel">
+              <div class="pp-head">pipeline · p_47</div>
+              <div class="pp-pills">
+                <span class="p done">active</span>
+                <span class="a">→</span>
+                <span class="p done">delivered</span>
+                <span class="a">→</span>
+                <span class="p now">invoiced</span>
+                <span class="a">→</span>
+                <span class="p next">paid</span>
+              </div>
+              <div style="font-size:10.5px; color:var(--text-lo); margin-top:2px;">Updated 2 min ago by Solo</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="n">04</div>
+            <div class="name"><span class="en">Invoice</span><span class="zh">发票</span></div>
+            <div class="desc"><span class="en">Solo remembers your payment terms, taxes, and how you like to word "please pay."</span><span class="zh">Solo 记得你的付款条款、税、以及"请付款"要怎么说才礼貌。</span></div>
+            <div class="peek-panel">
+              <div class="pp-head">invoice · INV-047</div>
+              <div class="pp-invoice">
+                <div>
+                  <div class="pp-title">Deposit — 50%</div>
+                  <div class="who">Alice · Landing page</div>
+                </div>
+                <div class="amt">$2,500</div>
+              </div>
+              <div style="font-family:'Geist Mono',monospace; font-size:10px; color:var(--text-lo); margin-top:4px;">terms: net 7 · sent to alice@…</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="n">05</div>
+            <div class="name"><span class="en">Follow-up</span><span class="zh">催款</span></div>
+            <div class="desc"><span class="en">Polite, firm, or final notice — you pick the tone. Solo writes the rest.</span><span class="zh">礼貌、坚定，或最终通知——你选语气，Solo 写全文。</span></div>
+            <div class="peek-panel">
+              <div class="pp-head">email · draft · tone: firm-but-friendly</div>
+              <div class="pp-email">
+                <div class="subj">Following up on invoice INV-047</div>
+                <div class="body-l">Hi Alice — hope your launch prep is going well. Just a gentle nudge that the deposit invoice went out 3 days ago…</div>
+              </div>
+              <div style="display:flex; gap:6px; margin-top:2px;">
+                <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:var(--accent); color:var(--accent-ink); font-family:'Geist Mono',monospace;">Send</span>
+                <span style="font-size:10px; padding:2px 6px; border-radius:4px; border:1px solid var(--border); color:var(--text-mid); font-family:'Geist Mono',monospace;">Edit</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ FEATURES GRID ═══════════════════ -->
+    <section class="features">
+      <div class="container">
+        <h3><span class="en">Because Solo is an operator, not a wrapper —</span><span class="zh">因为 Solo 是运营者，不是套壳 —</span></h3>
+        <div class="feat-grid">
+          <div class="feat">
+            <div class="icon">◉</div>
+            <div class="name"><span class="en">Persistent memory</span><span class="zh">持久记忆</span></div>
+            <div class="desc"><span class="en">Remembers every client, budget, deadline, and tone — across sessions, forever.</span><span class="zh">记住每个客户、预算、截止日、语气——跨会话，永远。</span></div>
+          </div>
+          <div class="feat">
+            <div class="icon">✓</div>
+            <div class="name"><span class="en">Human approval built in</span><span class="zh">人机审批内建</span></div>
+            <div class="desc"><span class="en">Solo asks before it acts. You stay in control of every send.</span><span class="zh">Solo 出手前一定征询。每一次发送都在你手里。</span></div>
+          </div>
+          <div class="feat">
+            <div class="icon">◈</div>
+            <div class="name"><span class="en">Context awareness</span><span class="zh">上下文理解</span></div>
+            <div class="desc"><span class="en">Knows <em>this</em> Alice from <em>that</em> Alice. Client history is always in scope.</span><span class="zh">分得清是<em>这个</em> Alice 还是<em>那个</em> Alice。客户历史永远在上下文里。</span></div>
+          </div>
+          <div class="feat">
+            <div class="icon">◇</div>
+            <div class="name"><span class="en">Works across models</span><span class="zh">跨模型运行</span></div>
+            <div class="desc"><span class="en">Qwen, Claude, GPT. Same memory. Same tools. Switch by one env var.</span><span class="zh">Qwen、Claude、GPT。同一套记忆与工具。改一个环境变量即换。</span></div>
+          </div>
+          <div class="feat">
+            <div class="icon">⋯</div>
+            <div class="name"><span class="en">One message, many actions</span><span class="zh">一句话，多动作</span></div>
+            <div class="desc"><span class="en">Chains create → contract → invoice → schedule in a single flow.</span><span class="zh">把创建 → 合同 → 发票 → 排程串成一次流程。</span></div>
+          </div>
+          <div class="feat">
+            <div class="icon">↻</div>
+            <div class="name"><span class="en">Recovers gracefully</span><span class="zh">优雅恢复</span></div>
+            <div class="desc"><span class="en">Tool fails? Solo retries, explains, and asks you what to do next.</span><span class="zh">工具失败？Solo 会重试、解释、并问你下一步怎么办。</span></div>
+          </div>
+        </div>
+
+        <div class="labs-note" id="labs">
+          <span class="label-inline"><span class="en">Labs</span><span class="zh">实验室</span></span>
+          <span class="en">Also under the hood: Bilingual (EN / 中文) · Knowledge base (RAG) · Command palette (⌘K) · CSV export · <a href="#">Casper on-chain balance verify</a></span>
+          <span class="zh">底层附赠：中英双语 · 知识库 (RAG) · 命令面板 (⌘K) · CSV 导出 · <a href="#">Casper 链上余额验证</a></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ TECH ═══════════════════ -->
+    <section class="tech">
+      <div class="container">
+        <div class="tech-row">
+          <div class="label"><span class="en">Built with</span><span class="zh">技术栈</span></div>
+          <div class="items">
+            <span>Next.js 14</span>
+            <span>Supabase</span>
+            <span>Qwen Cloud</span>
+            <span>TypeScript</span>
+            <span>Tailwind CSS</span>
+            <span>Casper Network</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ FINAL CTA ═══════════════════ -->
+    <section class="cta-final">
+      <div class="container">
+        <h2>
+          <span class="en">You close the clients.<br/><span class="serif">Solo runs the business.</span></span>
+          <span class="zh">你负责成交客户，<br/><span class="serif">生意交给 Solo 去跑。</span></span>
+        </h2>
+        <p>
+          <span class="en">Free while in beta. Your data stays with you. One conversation to get started.</span>
+          <span class="zh">Beta 期间免费。数据归你。开一次对话就能开始。</span>
+        </p>
+        <div class="btns">
+          <a class="btn-primary" href="/chat">
+            <span class="en">Open Solo</span><span class="zh">打开 Solo</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9m-3-3l3 3-3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn-ghost" href="#docs">
+            <span class="en">Read the docs</span><span class="zh">阅读文档</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container inner">
+        <div>© 2026 Solo · <span class="en">AI operator for freelancers</span><span class="zh">自由职业者的 AI 后台</span></div>
+        <div class="links">
+          <a href="#">Docs</a>
+          <a href="#">Privacy</a>
+          <a href="#">GitHub</a>
+          <a href="#">Twitter</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+<script>
+  // ────────────── Language toggle ──────────────
+  const btn = document.getElementById('langBtn');
+  btn.addEventListener('click', () => {
+    document.body.dataset.lang = document.body.dataset.lang === 'en' ? 'zh' : 'en';
+  });
+
+  // ────────────── Demo band typewriter (task-execution style, play once) ──────────────
+  // Reads more like a run log — user gives one instruction, agent chains tools, shows Done.
+  const script = [
+    { kind: 'input',   text: 'New client Alice, landing page, $5k, due Aug 15.' },
+    { kind: 'thought', text: 'Solo · thinking…' },
+    { kind: 'tool',    fn: 'create_project',        arg: 'alice, landing, 5000, 2026-08-15', out: '→ p_47' },
+    { kind: 'tool',    fn: 'generate_contract',     arg: 'p_47, terms=50/50',                out: '→ ready' },
+    { kind: 'tool',    fn: 'remember',              arg: 'alice.tone = "warm-but-clear"',    out: '→ stored' },
+    { kind: 'tool',    fn: 'create_invoice',        arg: 'p_47, deposit=2500 USD',           out: '→ drafted' },
+    { kind: 'tool',    fn: 'schedule_reminder',     arg: 'p_47, +3d',                        out: '→ set' },
+    { kind: 'final',   text: 'Done. Project active. Contract sent. Invoice ready. Reminder scheduled — <em>you can breathe.</em>' },
+  ];
+  const log = document.getElementById('demoLog');
+  const replayBtn = document.getElementById('replayBtn');
+  let scriptIdx = 0;
+  let charIdx = 0;
+  let currentLine = null;
+  let cursor = null;
+  let plainTarget = '';
+
+  function reset() {
+    scriptIdx = 0; charIdx = 0; currentLine = null; cursor = null; plainTarget = '';
+    if (log) log.innerHTML = '';
+    if (replayBtn) replayBtn.classList.remove('show');
+  }
+
+  function nextItem() {
+    if (!log) return;
+    if (scriptIdx >= script.length) {
+      if (replayBtn) replayBtn.classList.add('show');
+      return;
+    }
+    const item = script[scriptIdx];
+    if (item.kind === 'input') {
+      startTypedLine({
+        rowClass: 'row',
+        prefixHtml: '<div class="who you">&gt;</div>',
+        text: item.text,
+      });
+    } else if (item.kind === 'thought') {
+      // no typing — just fade the thought in
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = '<div class="who solo">Solo</div><div class="line" style="color:var(--text-lo)">' + item.text +
+        ' <span class="thinking-dots" style="vertical-align:middle"><span></span><span></span><span></span></span></div>';
+      log.appendChild(row);
+      scriptIdx++;
+      setTimeout(nextItem, 700);
+    } else if (item.kind === 'tool') {
+      // fast reveal — each tool line pops in
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML =
+        '<div class="who solo"></div>' +
+        '<div class="line"><span class="status">✓</span><span class="tool">' + item.fn + '</span>' +
+        '<span style="color:var(--text-mid)">(' + item.arg + ')</span>&nbsp;&nbsp;' +
+        '<span style="color:var(--text-lo)">' + item.out + '</span></div>';
+      row.style.opacity = '0';
+      log.appendChild(row);
+      requestAnimationFrame(() => {
+        row.style.transition = 'opacity .3s var(--ease)';
+        row.style.opacity = '1';
+      });
+      scriptIdx++;
+      setTimeout(nextItem, 380);
+    } else if (item.kind === 'final') {
+      const row = document.createElement('div');
+      row.className = 'final';
+      row.innerHTML = item.text;
+      row.style.opacity = '0';
+      log.appendChild(row);
+      requestAnimationFrame(() => {
+        row.style.transition = 'opacity .5s var(--ease)';
+        row.style.opacity = '1';
+      });
+      scriptIdx++;
+      setTimeout(nextItem, 400);
+    }
+  }
+
+  function startTypedLine({ rowClass, prefixHtml, text }) {
+    const row = document.createElement('div');
+    row.className = rowClass;
+    row.innerHTML = prefixHtml + '<div class="line"></div>';
+    log.appendChild(row);
+    currentLine = row.querySelector('.line');
+    cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    currentLine.appendChild(cursor);
+    plainTarget = text;
+    charIdx = 0;
+    typeChar(() => {
+      scriptIdx++;
+      setTimeout(nextItem, 500);
+    });
+  }
+  function typeChar(done) {
+    if (!currentLine || !cursor) return;
+    if (charIdx >= plainTarget.length) {
+      cursor.remove();
+      done && done();
+      return;
+    }
+    const ch = plainTarget[charIdx];
+    cursor.insertAdjacentText('beforebegin', ch);
+    charIdx++;
+    const delay = (ch === '.' || ch === ',') ? 90 : 22 + Math.random() * 30;
+    setTimeout(() => typeChar(done), delay);
+  }
+
+  if (replayBtn) {
+    replayBtn.addEventListener('click', () => {
+      reset();
+      setTimeout(nextItem, 200);
+    });
+  }
+
+  // Kick off when the demo section scrolls into view — only once
+  if ('IntersectionObserver' in window && log) {
+    const obs = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) { nextItem(); obs.disconnect(); }
+    }, { rootMargin: '-15% 0px' });
+    obs.observe(log);
+  } else if (log) { nextItem(); }
+</script>
+</body>
+</html>

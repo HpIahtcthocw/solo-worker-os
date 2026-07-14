@@ -31,3 +31,10 @@ debug.log
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# security audit reports (not for public repo)
+/security-audit/
+
+# trae workspace artifacts
+.trae-html-share-packages/
+.trae/
