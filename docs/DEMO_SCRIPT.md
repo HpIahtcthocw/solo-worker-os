@@ -1,80 +1,166 @@
-# Solo Worker OS — Demo Video Script
+# Solo Worker OS — Demo Video Script (English)
 
-> 建议录制时长：2-3 分钟。按以下流程操作即可。
-
----
-
-## Scene 1: Dashboard — 持久记忆 (0:00-0:30)
-
-**旁白：** "Solo Worker OS 是一个 AI 驱动的自由职业操作系统。Agent 拥有持久记忆 — 它知道每个客户、项目和合同，因为所有数据都存储在 Supabase 中，并在每次对话时注入上下文。"
-
-**操作：**
-- 打开 `/dashboard` — 展示项目统计数据
-- 指出：进行中项目数、待收款金额、总收入、逾期跟进
-- 点击一个项目 — 展示预算、截止日期、状态
-
-**要点：** Agent 在会话之间不会丢失任何上下文。
+> Duration: ~2-3 minutes. Speak in English throughout.
+> Server: http://localhost:3001 (or check terminal for port)
 
 ---
 
-## Scene 2: Agent 多工具协调 (0:30-1:30)
+## Before Recording
 
-**旁白：** "Agent 由 Qwen Cloud 驱动。当我描述一个新客户时，Qwen 提取结构化数据，与我确认，然后按顺序链式调用多个工具 — 创建项目、生成合同，全部在一次对话中完成。"
-
-**操作：**
-- 打开 `/chat`
-- 输入：`新客户张总，要做个 logo，预算 3000 元，两周后交付`
-- Agent 回复：请求确认货币和具体日期
-- 输入：`人民币CNY，交付日期 2026-07-28，请创建项目`
-- Agent 调用 `create_project` → 项目创建成功
-- Agent 主动建议后续操作（生成合同、查看定价基准）
-- 输入：`为张总生成合同`
-- Agent 调用 `generate_contract` → 完整合同在聊天中渲染
-
-**要点：** Qwen 驱动推理。Agent 自己决定调用哪些工具、按什么顺序 — 没有硬编码工作流。
+1. Open Chrome, go to `http://localhost:3001`
+2. Press `F11` for fullscreen
+3. Open screen recorder (OBS / QuickTime / Windows Game Bar)
+4. Set resolution to 1920x1080
 
 ---
 
-## Scene 3: 知识库检索 (1:30-2:00)
+## Scene 1: Dashboard — Persistent Memory (0:00 - 0:30)
 
-**旁白：** "Agent 还能搜索你的私有知识库 — 合同模板、邮件模板、客户笔记 — 给出上下文相关的回答。"
+**What to say:**
 
-**操作：**
-- 打开 `/knowledge` — 展示存储的文档
-- 回到 `/chat`，输入：`我的标准付款条件是什么？`
-- Agent 搜索知识库 → 返回相关模板内容
+> "Welcome to Solo Worker OS — an AI-native freelance operating system powered by Qwen Cloud. The agent has persistent memory: every client, project, and contract is stored in Supabase and injected into every conversation."
 
-**要点：** Agent 不只是回答问题，它理解你的业务上下文。
+**What to do:**
 
----
+1. Navigate to `http://localhost:3001/dashboard`
+2. Point at the stat cards: Active Projects, Pending Payments, Total Earned, Overdue
+3. Scroll down to show the project list
+4. Click on a project to show details (budget, deadline, status)
 
-## Scene 4: 项目管理与状态更新 (2:00-2:30)
-
-**旁白：** "通过对话就能管理整个项目生命周期。"
-
-**操作：**
-- 在 `/chat` 输入：`查看所有项目`
-- Agent 调用 `list_projects` → 展示项目列表
-- 输入：`把张总的项目状态更新为已交付`
-- Agent 调用 `update_project_status` → 状态更新
-
-**要点：** 所有项目管理操作通过自然语言完成。
+**Key message:** The agent never loses context between sessions.
 
 ---
 
-## Scene 5: 结尾 (2:30-2:45)
+## Scene 2: Create Project via Conversation (0:30 - 1:20)
 
-**旁白：** "Solo Worker OS 展示了 Qwen Cloud 的 Agent 推理能力与真实业务工具结合时可以实现的一切。Agent 记忆、推理、行动 — 全部自主完成。"
+**What to say:**
 
-**操作：**
-- 回到 `/dashboard` 展示最终状态
-- 停止录制
+> "The entire workflow runs through conversation. Powered by Qwen Cloud, the agent extracts structured data from natural language, asks for clarification when needed, and autonomously calls the right tools."
+
+**What to do:**
+
+1. Click "Chat" in the sidebar (or go to `/chat`)
+2. Type this exactly:
+
+```
+New client — Sarah Chen, she needs a logo design, budget 800 USD, deadline in 3 weeks
+```
+
+3. Press Send
+4. Wait for the agent to respond — it will ask for a specific date
+5. Type:
+
+```
+The deadline is August 10, 2026. Please create the project.
+```
+
+6. Press Send
+7. Wait — the agent will call `create_project` tool and confirm creation
+8. The agent will suggest next steps (generate contract, check pricing)
+
+**Key message:** Qwen decides which tools to call and in what order — no hardcoded workflows.
 
 ---
 
-## 录制建议
+## Scene 3: Generate Contract (1:20 - 1:50)
 
-1. **分辨率：** 1920x1080，30fps
-2. **浏览器：** Chrome，全屏模式（F11）
-3. **语言：** 建议用中文操作 + 英文字幕，或全程英文
-4. **上传：** YouTube 设为 Unlisted，把链接填到 Devpost 表单
+**What to say:**
+
+> "Once the project is created, I can ask the agent to generate a full service contract — also through conversation."
+
+**What to do:**
+
+1. Type:
+
+```
+Generate a contract for Sarah's project
+```
+
+2. Press Send
+3. Wait — the agent will call `generate_contract` and render the full contract in the chat
+4. Scroll through the contract text to show it's a real, detailed document
+
+**Key message:** The agent chains tools — create project, then generate contract — in one conversation.
+
+---
+
+## Scene 4: Knowledge Base Search (1:50 - 2:20)
+
+**What to say:**
+
+> "The agent can also search your private knowledge base — contract templates, email templates, client notes — to give context-aware answers."
+
+**What to do:**
+
+1. Click "Knowledge" in the sidebar (or go to `/knowledge`)
+2. Show the stored documents briefly
+3. Go back to `/chat`
+4. Type:
+
+```
+What are my standard payment terms?
+```
+
+5. Press Send
+6. Wait — the agent will call `search_knowledge` and return relevant content
+
+**Key message:** The agent understands your business context, not just generic AI responses.
+
+---
+
+## Scene 5: Project Management (2:20 - 2:45)
+
+**What to say:**
+
+> "You can manage the entire project lifecycle through conversation — list projects, update status, all in natural language."
+
+**What to do:**
+
+1. In `/chat`, type:
+
+```
+Show me all my projects
+```
+
+2. Press Send — agent calls `list_projects` and shows the list
+3. Type:
+
+```
+Update Sarah's project status to delivered
+```
+
+4. Press Send — agent calls `update_project_status`
+5. Go to `/dashboard` to show the updated state
+
+**Key message:** All project management through natural language — no forms, no clicks.
+
+---
+
+## Scene 6: Closing (2:45 - 3:00)
+
+**What to say:**
+
+> "Solo Worker OS demonstrates what's possible when you combine Qwen Cloud's agentic reasoning with real business tools. The agent remembers, reasons, and acts — all autonomously, all through conversation."
+
+**What to do:**
+
+1. Show the dashboard one final time
+2. Stop recording
+
+---
+
+## After Recording
+
+1. Upload to YouTube as **Unlisted**
+2. Copy the YouTube URL
+3. Paste it into the Devpost submission form → "Project details" → "Video demo" field
+
+---
+
+## Tips
+
+- **Speak slowly and clearly** — judges may not be native English speakers
+- **Wait for the agent** — Qwen takes 10-20 seconds per response. Don't rush.
+- **If the agent makes a mistake** — just say "Let me rephrase" and try again
+- **Mouse movements** — move slowly when pointing at things, use hover to highlight
+- **No silence** — keep narrating while waiting for the agent to respond
