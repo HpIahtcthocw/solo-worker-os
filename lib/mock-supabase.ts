@@ -80,6 +80,23 @@ const tables: Record<string, MockRow[]> = {
 
 let idCounter = 100;
 function genId(table: string): string {
+  // Generate proper UUIDs for tables that require them
+  if (table === 'projects' || table === 'knowledge_docs' || table === 'messages' || table === 'agent_actions') {
+    // Generate a deterministic UUID-like string using crypto.randomUUID if available
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback: generate UUID v4 format
+    const hex = '0123456789abcdef';
+    let uuid = '';
+    for (let i = 0; i < 36; i++) {
+      if (i === 8 || i === 13 || i === 18 || i === 23) { uuid += '-'; }
+      else if (i === 14) { uuid += '4'; }
+      else if (i === 19) { uuid += hex[Math.floor(Math.random() * 4) + 8]; }
+      else { uuid += hex[Math.floor(Math.random() * 16)]; }
+    }
+    return uuid;
+  }
   return `${table}-${Date.now()}-${idCounter++}`;
 }
 
