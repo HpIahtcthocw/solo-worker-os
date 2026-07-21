@@ -39,6 +39,7 @@ interface QwenMessage {
   role: 'user' | 'assistant' | 'system' | 'tool';
   content: string | QwenContentPart[];
   tool_calls?: QwenToolCallPart[];
+  tool_call_id?: string;
 }
 
 interface QwenContentPart {
@@ -113,10 +114,11 @@ function toQwenMessage(msg: { role: string; content: unknown }): QwenMessage {
     return { role: 'assistant', content: String(raw) };
   }
 
-  // tool role — convert from Anthropic tool_result blocks
+  // tool role — convert from Anthropic tool_result blocks or plain string
   if (msg.role === 'tool') {
     const raw = msg.content;
     let text = '';
+    let toolCallId = (msg as { tool_call_id?: string }).tool_call_id ?? '';
 
     if (typeof raw === 'string') {
       text = raw;
@@ -124,6 +126,7 @@ function toQwenMessage(msg: { role: string; content: unknown }): QwenMessage {
       // Anthropic tool_result blocks: { type: 'tool_result', content: '...', tool_use_id: '...' }
       text = (raw as Array<Record<string, unknown>>)
         .map((block) => {
+          if (block.tool_use_id) toolCallId = String(block.tool_use_id);
           if (typeof block.content === 'string') return block.content;
           if (block.content && typeof block.content === 'object') {
             const cb = block.content as Record<string, unknown>;
@@ -134,10 +137,14 @@ function toQwenMessage(msg: { role: string; content: unknown }): QwenMessage {
         .join('\n');
     }
 
-    return {
+    const result: QwenMessage = {
       role: 'tool',
-      content: [{ type: 'text', text } as QwenContentPart],
+      content: text,
     };
+    if (toolCallId) {
+      result.tool_call_id = toolCallId;
+    }
+    return result;
   }
 
   // system or unknown
@@ -214,6 +221,9 @@ async function streamMessage(
     };
     if (hasToolCalls) {
       base.tool_calls = msgWithCalls.tool_calls;
+    }
+    if (m.role === 'tool' && m.tool_call_id) {
+      base.tool_call_id = m.tool_call_id;
     }
     return base;
   });
@@ -365,30 +375,26 @@ export const qwenProvider: AgentProvider = {
       }
 
       // ── Execute tools and append results ──
-      const toolResultBlocks: Array<{ type: string; content: string; tool_use_id: string }> = [];
+      // OpenAI/Qwen format: each tool result is a separate message with tool_call_id
       for (const tu of res.toolUses) {
         try {
           const out = await executeTool(tu.name, tu.input);
           callbacks.onTool?.(tu.name, out.clientSummary);
-          // Do NOT call onText for tool displayText — causes duplicate messages in chat
-          toolResultBlocks.push({
-            type: 'tool_result',
+          qwenMessages.push({
+            role: 'tool',
             content: out.toolResult,
-            tool_use_id: tu.id,
-          });
+            tool_call_id: tu.id,
+          } as QwenMessage);
         } catch (err) {
           const message = err instanceof Error ? err.message : String(err);
           callbacks.onTool?.(tu.name, `Error: ${message}`);
-          toolResultBlocks.push({
-            type: 'tool_result',
+          qwenMessages.push({
+            role: 'tool',
             content: `Error: ${message}`,
-            tool_use_id: tu.id,
-          });
+            tool_call_id: tu.id,
+          } as QwenMessage);
         }
       }
-
-      // Append tool results in Anthropic format (toQwenMessage converts for the API)
-      qwenMessages.push({ role: 'tool', content: toolResultBlocks } as any);
     }
 
     return allText;

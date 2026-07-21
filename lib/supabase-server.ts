@@ -1,5 +1,6 @@
 import { createServerClient as createSSRClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { createMockClient } from './mock-supabase';
 
 const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -8,8 +9,13 @@ const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
  * User-scoped Supabase client for Server Components and Route Handlers.
  * Reads the auth session from cookies — respects RLS automatically.
  * Use this for all user-initiated data operations.
+ *
+ * When DEMO_MODE=true, returns an in-memory mock client pre-seeded with demo data.
  */
 export function createSupabaseServerClient() {
+  if (process.env.DEMO_MODE === 'true') {
+    return createMockClient();
+  }
   const cookieStore = cookies();
   return createSSRClient(supabaseUrl, supabaseAnon, {
     cookies: {
